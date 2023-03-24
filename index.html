@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<title>Active Major Construction | Historic Districts & Landmarks</title>
+	<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" crossorigin="" />	
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+ 
+    <style>
+		<!-- html, body, #map { -->
+		<!-- margin:0; padding:0;  width : 100%; height : 100%; -->
+		<!-- } -->
+		#map {
+			height: 100%;
+			width: 100%;
+			pointer-events: all;
+		}
+		.logo{
+			background-image: url('https://raw.githubusercontent.com/NYCDOB/CommunityProfiles_v2/gh-pages/dob_logo_white_transparent.png');
+			background-repeat: no-repeat;
+			background-position: center;
+			float: right;
+			background-size: 80px;
+			height: 50px;
+			width: 110px;	  
+		}
+		.row{
+			padding-top: 50px;
+			margin: 4px;
+		}
+		.ui {
+			top: 220px;
+			left: 12px;
+			padding: 8px;
+			position: absolute;
+			background: white;
+			background: rgba(255,255,255,0.8);
+			border: 2px solid #707070;
+			box-shadow: 0 0 15px rgba(0,0,0,0.2);
+			border-radius: 7px;
+			width: 220px;
+			font-size: 14px;
+		}
+		.ui_activePermits {
+			top: 85px;
+			left: 12px;
+			padding: 8px;
+			position: absolute;
+			background: white;
+			background: rgba(255,255,255,0.8);
+			border: 2px solid #707070;
+			box-shadow: 0 0 15px rgba(0,0,0,0.2);
+			border-radius: 7px;
+			width: 220px;
+			font-size: 14px;
+		}		
+		/* The switch - the box around the slider */
+		.switch {
+		  position: relative;
+		  display: inline-block;
+		  width: 32px;
+		  height: 20px;
+		}
+
+		/* Hide default HTML checkbox */
+		.switch input {
+		  opacity: 0;
+		  width: 0;
+		  height: 0;
+		}
+
+		/* The slider */
+		.slider {
+		  position: absolute;
+		  cursor: pointer;
+		  top: 0;
+		  left: 0;
+		  right: 0;
+		  bottom: 0;
+		  background-color: #ccc;
+		  -webkit-transition: .4s;
+		  transition: .4s;
+		}
+
+		.slider:before {
+		  position: absolute;
+		  content: "";
+		  height: 12px;
+		  width: 12px;
+		  left: 4px;
+		  bottom: 4px;
+		  background-color: white;
+		  -webkit-transition: .4s;
+		  transition: .4s;
+		}
+
+		input:checked + #sliderNB {
+		  background-color: #2D669F;
+		}
+		input:focus + #sliderNB {
+		  box-shadow: 0 0 1px #2D669F;
+		}
+		input:checked + #sliderA1 {
+		  background-color: #FA8303;
+		}
+
+		input:focus + #sliderA1 {
+		  box-shadow: 0 0 1px #FA8303;
+		}
+		input:checked + #sliderDM {
+		  background-color: #CF3126;
+		}
+
+		input:focus + #sliderDM {
+		  box-shadow: 0 0 1px #CF3126;
+		}
+
+		input:checked + #sliderIndLandmarks {
+		  background-color: #EDA0D8;
+		}
+		input:focus + #sliderIndLandmarks {
+		  box-shadow: 0 0 1px #EDA0D8;
+		}
+		input:checked + #sliderIntLandmarks {
+		  background-color: #608EFD;
+		}
+
+		input:focus + #sliderIntLandmarks {
+		  box-shadow: 0 0 1px #608EFD;
+		}
+		input:checked + #sliderHistDist {
+		  background-color: #FFDF7E;
+		}
+
+		input:focus + #sliderHistDist {
+		  box-shadow: 0 0 1px #FFDF7E;
+		}
+		input:checked + #sliderScenicLandmarks {
+		  background-color: #99C185;
+		}
+
+		input:focus + #sliderScenicLandmarks {
+		  box-shadow: 0 0 1px #99C185;
+		}
+		input:checked + .slider:before {
+		  -webkit-transform: translateX(12px);
+		  -ms-transform: translateX(12px);
+		  transform: translateX(12px);
+		}
+		#sliderTxt {
+			font-size: 12px;
+			line-height: 12px;
+			vertical-align: middle;
+		}
+		.leaflet-popup-content-wrapper{
+			font-size: 12px;
+		}
+		.pointNB{
+			fill: #2D669F;
+			stroke: #fff;
+
+		}
+		.pointA1{
+			fill: #FA8303;
+			stroke: #fff;
+
+		}
+		.pointDM{
+			fill: #CF3126;
+			stroke: #fff;
+
+		}
+		.tooltip {
+			color: #222;
+			background: #fff;
+			padding: .5em;
+			text-shadow: #f5f5f5 0 1px 0;
+			border-radius: 7px; 
+			box-shadow: 0px 0px 2px 0px #a6a6a6; 
+			opacity: 0.9; 
+			position: absolute;
+			visibility: hidden;
+		}
+
+    </style> 
+  </head>
+  <body>
+	<div class="container">
+				<div class="navbar navbar-fixed-top" role="navigation" style="color:white;background-color:RGB(61,74,87);">
+				<a class="logo" href="https://www1.nyc.gov/site/buildings/index.page" target="_blank"> </a>
+					<div class="nav navbar-nav" style="margin-left:15px;margin-top:10px;font-size:26px;font-weight:bold;text-align:center;">
+						ACTIVE MAJOR CONSTRUCTION | HISTORIC DISTRICTS & LANDMARKS 
+					</div>
+				</div>
+	</div>
+	<div class="container-fluid dobmain" style="margin-top:20px;">
+		<div class="row">
+			  <div style="height:89vh">
+				  <div class="chart-stage" id="map-container" style="border:1px solid black;height:100%;width:100%">				  
+					<div id="map">	
+
+						<div id="ui-activePermits" class="ui_activePermits" style="z-index: 401"><p><b>Active Major Construction</b></p>
+							<span style="display:inline-block;">
+								<label class="switch">
+									<input type="checkbox" checked="true" id="chkNB">
+									<span class="slider" id="sliderNB"></span>						
+								</label>								
+								<span class="en" id="sliderTxt">New Buildings</span>
+							</span>
+							<br/>
+
+							<span style="display:inline-block;">
+								<label class="switch">
+									<input type="checkbox" checked="true" id="chkA1">
+									<span class="slider" id="sliderA1"></span>
+								</label>
+								<span class="en" id="sliderTxt">Major Alterations</span>
+							</span>
+							<br/>
+
+							<span style="display:inline-block;">
+								<label class="switch">
+									<input type="checkbox" checked="true" id="chkDM">
+									<span class="slider" id="sliderDM"></span>
+								</label>
+								<span class="en" id="sliderTxt">Demolitions</span>
+							</span>
+							<br/>
+						</div>
+
+
+
+					
+						<div id="ui-commercial" class="ui" style="z-index: 401"><p><b>LPC Layers</b></p>
+							<span style="display:inline-block;">
+								<label class="switch">
+									<input type="checkbox" checked="true" id="chkIndLandmarks">
+									<span class="slider" id="sliderIndLandmarks"></span>						
+								</label>								
+								<span class="en" id="sliderTxt">Individual Landmarks</span>
+							</span>
+							<br/>
+
+							<span style="display:inline-block;">
+								<label class="switch">
+									<input type="checkbox" checked="true" id="chkIntLandmarks">
+									<span class="slider" id="sliderIntLandmarks"></span>
+								</label>
+								<span class="en" id="sliderTxt">Interior Landmarks</span>
+							</span>
+							<br/>
+
+							<span style="display:inline-block;">
+								<label class="switch">
+									<input type="checkbox" checked="true" id="chkHistDist">
+									<span class="slider" id="sliderHistDist"></span>
+								</label>
+								<span class="en" id="sliderTxt">Historic Districts</span>
+							</span>
+							<br/>
+
+							<span style="display:inline-block;">
+								<label class="switch">
+									<input type="checkbox" checked="true" id="chkScenicLandmarks">
+									<span class="slider" id="sliderScenicLandmarks"></span>
+								</label>
+								<span class="en" id="sliderTxt">Scenic Landmarks</span>
+							</span>
+						</div>					
+					</div>
+				  </div>
+			  </div>
+		</div>
+		<p class="small text-muted" style=" position:relative; bottom:0px;">Built by DOB Analytics <a href="https://www1.nyc.gov/site/buildings/dob/analytics-reports.page" target="_blank">Dev Squad</a> | This map shows the location of all actively permitted sidewalk sheds and is updated daily. <a id="dlData" href="no-script.html">Download Data (csv)</a></p>	
+	</div>
+	<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" crossorigin=""></script>
+	<script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+	<script src="leaflet-svg-shape-markers/dist/leaflet-svg-shape-markers.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.9/d3.min.js"></script>
+	<script src="https://nycdob.github.io/EssentialActiveConstruction/Leaflet.D3SvgOverlay-master/L.D3SvgOverlay.min.js"></script>
+
+
+    <script>
+	$(document).ready(function(){
+		  var map = L.map('map').setView([40.713312, -73.977407], 14);
+		  L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png', {attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
+
+		var tooltip = d3.select('#map').append('div')//var tooltip = d3.select('body').append('div')
+			.on('mouseover', function(d, i){
+				tooltip.transition().duration(0);
+			})
+			.on('mouseout', function(d, i){
+				tooltip.transition().delay(500).style('visibility', 'hidden');
+			})
+			.attr('class', 'tooltip');
+			
+		var numberFormat = d3.format(",.0f"),
+		    width = $("#map").width(),
+			height = $("#map").height();
+
+				
+		var individualLandmarks_slider = document.querySelector('input[id="chkIndLandmarks"]'),
+			interiorLandmarks_slider = document.querySelector('input[id="chkIntLandmarks"]'),
+			historicDistrics_slider = document.querySelector('input[id="chkHistDist"]'),
+			scenicLandmarks_slider = document.querySelector('input[id="chkScenicLandmarks"]'),
+			nb_slider = document.querySelector('input[id="chkNB"]'),
+			a1_slider = document.querySelector('input[id="chkA1"]'),
+			dm_slider = document.querySelector('input[id="chkDM"]'),
+			interiorLandmarks,
+			individualLandmarks,
+			historicDistrics,
+			scenicLandmarks,
+			pointsOverlay;
+
+
+			
+	//LPC SERVICES 
+		//SCENIC LANDMARKS
+		map.createPane("scenic");
+		function scenicLandmarks_add(){
+		    scenicLandmarks = L.esri.featureLayer({
+			url: "https://services5.arcgis.com/Oos4pNA2538iVFA1/arcgis/rest/services/Scenic/FeatureServer/0",
+			pane: "scenic",
+			style: function () {
+			  return { color: "#99C185", weight: 2 };
+			},
+			onEachFeature: function(feature, layer){
+				layer.bindPopup("<b>" + feature.properties.LM_Type + ":</b><br>" + feature.properties.NAME_1 + " | " + feature.properties.LP_NUM2);
+			}
+		  }).addTo(map);
+		}
+		function scenicLandmarks_remove() {
+			map.removeLayer(scenicLandmarks)
+		}
+		
+		//HISTORIC DISTRICTS
+		map.createPane("historic");
+		function historicDistrics_add(){
+		    historicDistrics = L.esri.featureLayer({
+			url: "https://services5.arcgis.com/Oos4pNA2538iVFA1/arcgis/rest/services/Historic_Districts/FeatureServer/0",
+			pane: "historic",
+			style: function () {
+			  return { color: "#FFDF7E", weight: 2 };
+			},
+			onEachFeature: function(feature, layer){
+				layer.bindPopup("<b>" + feature.properties.LM_Type + ":</b><br>" + feature.properties.AREA_NAME + " | " + feature.properties.LPNUM_TRIM);
+			}
+		  }).addTo(map);
+		}
+		function historicDistrics_remove() {
+			map.removeLayer(historicDistrics)
+		}
+		
+		//INDIVIDUAL LANDMARKS
+		map.createPane("individual");
+		function individualLandmarks_add(){
+		    individualLandmarks = L.esri.featureLayer({
+			url: "https://services5.arcgis.com/Oos4pNA2538iVFA1/arcgis/rest/services/Ind_Landmark_Lots_POLY/FeatureServer/0",
+			pane: "individual",
+			style: function () {
+			  return { color: "#EDA0D8", weight: 2 };
+			},
+			onEachFeature: function(feature, layer){
+				layer.bindPopup("<b>" + feature.properties.LandmarkTy + ":</b><br>" + feature.properties.LPC_NAME + " | " + feature.properties.LP_NumTrim);
+			}
+		  }).addTo(map);
+			
+		}
+		function individualLandmarks_remove() {
+			map.removeLayer(individualLandmarks)
+		}
+		
+		//INTERIOR LANDMARKS
+		map.createPane("interior");
+		function interiorLandmarks_add(){
+		    interiorLandmarks = L.esri.featureLayer({
+			url: "https://services5.arcgis.com/Oos4pNA2538iVFA1/arcgis/rest/services/Interiors/FeatureServer/0",
+			pointToLayer: function(feature, latlng){
+				return L.shapeMarker(latlng, {
+					pane: "interior",
+					fillColor: "#608EFD",
+					shape: "square",
+					weight: 1,
+					radius: 4,
+					fillOpacity: 0.6
+				})
+			},
+			onEachFeature: function(feature, layer){
+				layer.bindPopup("<b>" + feature.properties.LM_TYPE + ":</b><br>" + feature.properties.LM_NAME + " | " + feature.properties.LP_NUM2);
+			}
+		  }).addTo(map);
+		}
+		function interiorLandmarks_remove() {
+			map.removeLayer(interiorLandmarks);
+		}
+
+		//SLIDER ONCHANGE
+		nb_slider.onchange = function(){
+				if(this.checked){
+					individualLandmarks_add();
+				} else {
+					individualLandmarks_remove();
+				}
+		};
+		a1_slider.onchange = function(){
+				if(this.checked){
+					individualLandmarks_add();
+				} else {
+					individualLandmarks_remove();
+				}
+		};
+		dm_slider.onchange = function(){
+				if(this.checked){
+					individualLandmarks_add();
+				} else {
+					individualLandmarks_remove();
+				}
+		};
+		individualLandmarks_slider.onchange = function(){
+				if(this.checked){
+					individualLandmarks_add();
+				} else {
+					individualLandmarks_remove();
+				}
+		};
+		interiorLandmarks_slider.onchange = function(){
+				if(this.checked){
+					interiorLandmarks_add();
+				} else {
+					interiorLandmarks_remove();			
+				}
+		};
+		historicDistrics_slider.onchange = function(){
+				if(this.checked){
+					historicDistrics_add();
+				} else {
+					historicDistrics_remove();			
+				}
+		};
+		scenicLandmarks_slider.onchange = function(){
+				if(this.checked){
+					scenicLandmarks_add();
+				} else {
+					scenicLandmarks_remove();			
+				}
+		};
+		scenicLandmarks_add();
+		historicDistrics_add();
+		individualLandmarks_add(); 
+		interiorLandmarks_add();					
+
+		//ACTIVE PERMITS
+
+		pointsOverlay = L.d3SvgOverlay(function(sel,proj){
+			var pointsUpd = sel.selectAll('circle').data(points);
+			
+		pointsUpd.enter()
+			.append('circle')	
+			.attr("bin",function(d){return d["BIN Number"]})
+			.attr('cx',function(d){return proj.latLngToLayerPoint(d.latLng).x;})
+			.attr('cy',function(d){return proj.latLngToLayerPoint(d.latLng).y;})
+			.attr('class', function(d){
+				switch(d["Job Type"]){
+					case 'NB':
+					case 'New Building':
+						return 'pointNB';
+						break;
+					case 'A1':
+					case 'ALT-CO - New Building with Existing Elements to Remain':
+					case 'Alteration CO':
+						return 'pointA1';
+						break;
+					case 'DM':
+					case 'Full Demolition':
+						return 'pointDM';
+						break;
+				}
+			})
+			.on('click', function(d){
+				
+				if(d3.select(this).style("fill-opacity") != 0){
+					tooltip.style("visibility", "visible");
+					tooltip.html(
+						'JOB TYPE: ' + d.jobType + '</br>' +
+						'JOB NUMBER: ' + d.jobNum + '</br>' +
+						'BIN: ' + d.bin + '<a href= "http://dob-bisweb.buildings.nycnet/bisweb-intra/PropertyProfileOverviewServlet?bin=' + d["BIN Number"] + '&go4=+GO+&requestid=0" target="_blank">' + " LINK TO BIS" + '</a>' + '</br>' +								
+						'ADDRESS: '+ d.address + '</br>' +
+						'BLOCK: ' + d.block + '</br>' +	
+						'LOT: ' + d.lot + '</br>' +	
+						'COMMUNITY DISTRICT: ' + d.CD + '</br>' +
+						'HORIZONTAL ENLARGEMENT: ' + d.horizEnl + '</br>' +
+						'VERTICAL ENLARGEMENT: ' + d.vertEnl + '</br>' +
+						'SQUARE FOOTAGE: ' + numberFormat(d.sqft) + '</br>' +
+						'PROPOSED DWELLING UNITS: ' + numberFormat(d.propDwell) + '</br>' +
+						'PROPOSED STORIES: ' + d.propStories + '</br>' +
+						'ESTIMATE COST ($): ' + numberFormat(d.estCost) + '</br>' +
+						'APPLICANT BUSINESS NAME: ' + d.appName + '</br>' +
+						'PERMIT ISSUANCE DATE: ' + d.issueDate + '</br>' +
+						'PERMIT EXPIRATION DATE: ' + d.expDate + '</br>'
+					)
+					if (d3.event.pageX > (width - 200)) {
+					   tooltip.style("left", (d3.event.pageX - 350) + "px");
+					} else {
+					   tooltip.style("left", (d3.event.pageX + 20) + "px")
+							.style("top", (d3.event.pageY -30) + "px");
+					}
+					if (d3.event.pageY > (height - 150)) {
+					   tooltip.style("top", (d3.event.pageY -100) + "px");
+					} else {
+					   tooltip.style("top", (d3.event.pageY -30) + "px");
+					}
+				}
+				
+			})
+
+			.on("mouseover", function(d, i){
+
+				previousColor = d3.select(this).style("fill");
+				tooltip.transition().duration(0); 
+				$(this).attr("style", "cursor: pointer; fill: #E3E71D;");				
+				
+			})
+			.on("mouseout", function(d, i){			
+				d3.select(this).style("fill",previousColor);
+				return tooltip.transition().delay(500).style("visibility", "hidden");
+			});
+			pointsUpd.attr("r", 4 / proj.scale);
+			pointsUpd.attr("stroke-width", 1 / proj.scale);		
+			
+			
+		});
+
+
+		d3.csv("data/ActiveNBAlt1_Enlargements.csv",function(data){
+					//points = data.map(function(d){
+					points = data.filter(function(d) {
+						if( !isNaN(+d["Latitude Point"]) && !isNaN(+d["Longitude Point"]) ) {
+							return d;
+						}
+					}).map(function(d){
+					d.latLng = [+d["Latitude Point"],+d["Longitude Point"]];
+					d.bin = d["BIN Number"];
+					d.address = d["Job Location Street Name"].toUpperCase();
+					d.CD = d["Community Board"];
+					d.Borough = d["Borough Name"].toUpperCase();
+					d.jobNum = d["Job Number"];
+					d.block = [d.Block];
+					d.lot = [d.Lot];
+					d.jobType = d["Job Type"];
+					d.horizEnl = d["Horizontal Enlargement Flag"];
+					d.vertEnl = d["Vertical Enlargement Flag"];
+					d.issueDate = d["Permit Issuance Date"];
+					d.expDate = d["Permit Expiration Date"];
+					d.jobStatus = d["Current Job Status"];
+					d.sqft = +d["Total Construction Floor Area"];
+					d.propDwell = +d["Proposed Dwelling Units"];
+					d.propStories = d["Proposed Stories"];
+					d.estCost = +d["Estimated Job Cost"];
+					d.appName = d["Applicant Business Name"];
+				return d;
+				});
+			
+				pointsOverlay.addTo(map);
+
+				d3.selectAll(".pointNB").style("display", "block");
+				d3.selectAll(".pointA1").style("display", "block");
+				d3.selectAll(".pointDM").style("display", "block");
+				
+
+				nb_slider.onchange = function(){
+						if(this.checked){
+							d3.selectAll(".pointNB").filter(function(d) {
+								return d["Job Type"] == "NB" || d["Job Type"] == "New Building";
+							})
+							.style("display", "block");	
+							
+
+						} else {
+							d3.selectAll(".pointNB").filter(function(d) {
+								return d["Job Type"] == "NB" || d["Job Type"] == "New Building";
+							})
+							.style("display", "none");
+										
+						}
+				};
+				a1_slider.onchange = function(){
+						if(this.checked){
+							d3.selectAll(".pointA1").filter(function(d) {
+								return d["Job Type"] == "A1" || d["Job Type"] == "ALT-CO - New Building with Existing Elements to Remain" || d["Job Type"] == "Alteration CO";
+							})
+							.style("display", "block");	
+							
+
+						} else {
+							d3.selectAll(".pointA1").filter(function(d) {
+								return d["Job Type"] == "A1" || d["Job Type"] == "ALT-CO - New Building with Existing Elements to Remain" || d["Job Type"] == "Alteration CO";
+							})
+							.style("display", "none");
+										
+						}
+				};
+				dm_slider.onchange = function(){
+						if(this.checked){
+							d3.selectAll(".pointDM").filter(function(d) {
+								return d["Job Type"] == "DM" || d["Job Type"] == "Full Demolition";
+							})
+							.style("display", "block");	
+							
+
+						} else {
+							d3.selectAll(".pointDM").filter(function(d) {
+								return d["Job Type"] == "DM" || d["Job Type"] == "Full Demolition";
+							})
+							.style("display", "none");
+										
+						}
+				};
+		});
+		
+		//LPC layers under Active Permits layer
+		map.getPane('historic').style.zIndex = 200;
+		map.getPane('scenic').style.zIndex = 200;
+		map.getPane('individual').style.zIndex = 200;
+		map.getPane('interior').style.zIndex = 200;	
+		
+		$('#dlData').click(function(e) {
+			e.preventDefault();  //stop the browser from following
+			window.location.href = 'https://nycdob.github.io/ActiveShedPermits/data/Active_Sheds2.csv';
+			
+		});
+
+		  
+	});
+    </script> 
+  </body>
+</html>
